@@ -1,39 +1,38 @@
 #pragma once
 
-#include <string>
-#include <iostream>
+#include <cstddef>
 
-using namespace std;
-enum class Direction {
+// Directions are ordered clockwise to match the ant's right-turn rule.
+enum class Direction
+{
     Up,
     Right,
     Down,
     Left
 };
 
+// Grid coordinates are always expressed as (row, column).
+struct GridPosition
+{
+    std::size_t row;
+    std::size_t column;
+};
+
+// SFML-independent state and movement for a single ant.
 class Ant
 {
-    private:
-        string name;
-        int x;
-        int y;
-        Direction direction;
+public:
+    explicit Ant(GridPosition position);
 
-        void setCoordinates(int newX, int newY);
-        void setDirection(Direction newDirection);
+    GridPosition position() const;
+    Direction direction() const;
 
-        Direction getDirection() ;
-        string getDirectionString() ;
+    void turnRight();
+    void turnLeft();
+    // Move one cell, wrapping across grid edges.
+    void moveForward(std::size_t rowCount, std::size_t columnCount);
 
-    public:
-        
-        Ant(string name, int x, int y);
-        void turnRight();
-        void turnLeft();
-        void speak();
-        int getcordinate_x();
-        int getcordinate_y();
-        void movement_0();
-        void movement_1();
+private:
+    GridPosition position_;
+    Direction direction_;
 };
-    

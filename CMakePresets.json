@@ -2,9 +2,9 @@
     "version": 8,
     "configurePresets": [
         {
-            "name": "ChaosAntPreset",
-            "displayName": "Custom configure preset",
-            "description": "Sets Ninja generator, build and install directory",
+            "name": "LangtonsAntSimulationPreset",
+            "displayName": "Langton's Ant Simulation",
+            "description": "Configures the application with Ninja",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/out/build/${presetName}",
             "cacheVariables": {

@@ -1,112 +1,142 @@
 #include "Simulation.h"
-#include <chrono>
-#include <thread>
-#include "Ant.h"
 
+#include <algorithm>
+#include <random>
+#include <stdexcept>
 
-
-Simulation::Simulation(int width, int height)
-: width(width),
-      height(height),
-      map(height, vector<bool>(width, false)),
-      ant("Ant", height / 2, width / 2),
-      turn(0)
+namespace
 {
-}
-
-vector<vector<bool>>& Simulation::getMap()
+// Validate dimensions before allocating the flattened grid, including overflow.
+std::size_t checkedCellCount(std::size_t rowCount, std::size_t columnCount)
 {
-    return map;
-}
-
-
-int Simulation::getTurn()
-{
-    return turn; // Return the current turn number
-}
-
-void Simulation::increaseTurn()
-{
-    turn++; // Increment the turn counter
-}
-
-void Simulation::moveAnt(Ant& ant, int movement)
-{
-    if (movement == 0)
+    if (rowCount == 0 || columnCount == 0)
     {
-        ant.movement_0(); // Move according to the rules for black square
-    }
-    else if (movement == 1)
-    {
-        ant.movement_1(); // Move according to the rules for white square
-    }
-    else
-    {
-        cout << "Error: Invalid movement value." << endl;
-    }
-}
-
-void Simulation::updateMap(Ant& ant)
-{
-    int x = ant.getcordinate_x();
-    int y = ant.getcordinate_y();
-
-    // Check whether the ant is inside the map.
-    if (x < 0 || x >= height || y < 0 || y >= width)
-    {
-        cout << "Error: Ant is outside the map." << endl;
-        return;
+        throw std::invalid_argument("Grid dimensions must be positive.");
     }
 
-    // First index is the row (y), second is the column (x).
-    if (map[x][y] == false)
+    if (rowCount > std::vector<CellState>().max_size() / columnCount)
     {
-        map[x][y] = true;
-        moveAnt(ant, 0);
-    }
-    else
-    {
-        map[x][y] = false;
-        moveAnt(ant, 1);
+        throw std::length_error("Grid dimensions are too large.");
     }
 
-
+    return rowCount * columnCount;
+}
 }
 
-void Simulation::step(){
-    ant.speak(); // Make the ant speak
-    updateMap(ant); // Update the map based on the ant's current position
-    increaseTurn(); // Increment the turn counter
-    cout << "End of turn: " << getTurn() << endl; // Print the current step number
-}
-
-void Simulation::run()
+Simulation::Simulation(std::size_t rowCount, std::size_t columnCount)
+    : rowCount_(rowCount),
+      columnCount_(columnCount),
+      cells_(checkedCellCount(rowCount, columnCount), CellState::Dark),
+    ants_{Ant({rowCount / 2, columnCount / 2})},
+    randomEngine_(std::random_device{}()),
+    turnCount_(0)
 {
-    while (true) // Infinite loop to run the simulation continuously
-    {
-        printMap(); // Print the current state of the map
-        std::this_thread::sleep_for(std::chrono::milliseconds(5000)); // Add a delay of 5000 milliseconds (5 second)
-        step(); // Perform a simulation step
-        
-        // You can add a delay here if you want to slow down the simulation
-    }
 }
 
-void Simulation::printMap()
+std::size_t Simulation::rowCount() const
 {
-    for (int x = 0; x < height; x++)
+    return rowCount_;
+}
+
+std::size_t Simulation::columnCount() const
+{
+    return columnCount_;
+}
+
+std::size_t Simulation::turnCount() const
+{
+    return turnCount_;
+}
+
+const Ant& Simulation::ant() const
+{
+    return ants_.front();
+}
+
+const std::vector<Ant>& Simulation::ants() const
+{
+    return ants_;
+}
+
+CellState Simulation::cellAt(GridPosition position) const
+{
+    return cells_.at(indexOf(position));
+}
+
+std::size_t Simulation::indexOf(GridPosition position) const
+{
+    if (position.row >= rowCount_ || position.column >= columnCount_)
     {
-        for (int y = 0; y < width; y++)
+        throw std::out_of_range("Grid position is outside the simulation.");
+    }
+
+    // Store rows contiguously while exposing explicit row/column coordinates.
+    return position.row * columnCount_ + position.column;
+}
+
+void Simulation::step()
+{
+    // Ants share the grid; each sees changes made by earlier ants in this tick.
+    for (Ant& ant : ants_)
+    {
+        const GridPosition currentPosition = ant.position();
+        CellState& currentCell = cells_.at(indexOf(currentPosition));
+
+        // Dark cells turn right and become light; light cells do the opposite.
+        if (currentCell == CellState::Dark)
         {
-            if (ant.getcordinate_x() == x && ant.getcordinate_y() == y)
+            ant.turnRight();
+            currentCell = CellState::Light;
+        }
+        else
+        {
+            ant.turnLeft();
+            currentCell = CellState::Dark;
+        }
+
+        ant.moveForward(rowCount_, columnCount_);
+    }
+
+    ++turnCount_;
+}
+
+bool Simulation::addRandomAnt()
+{
+    std::vector<bool> occupied(cells_.size(), false);
+    for (const Ant& ant : ants_)
+    {
+        occupied.at(indexOf(ant.position())) = true;
+    }
+
+    std::vector<GridPosition> availablePositions;
+    availablePositions.reserve(cells_.size());
+    for (std::size_t row = 0; row < rowCount_; ++row)
+    {
+        for (std::size_t column = 0; column < columnCount_; ++column)
+        {
+            const GridPosition position{row, column};
+            if (!occupied[indexOf(position)])
             {
-                cout << "A "; // Print 'A' for the ant's position
-            }
-            else
-            {
-                cout << (map[x][y] ? "1" : "0 "); // Print '1' for black square, '0' for white square
+                availablePositions.push_back(position);
             }
         }
-        cout << endl;
     }
+
+    if (availablePositions.empty())
+    {
+        return false;
+    }
+
+    std::uniform_int_distribution<std::size_t> choosePosition(
+        0, availablePositions.size() - 1);
+    ants_.emplace_back(availablePositions[choosePosition(randomEngine_)]);
+    return true;
+}
+
+void Simulation::reset()
+{
+    cells_.assign(cells_.size(), CellState::Dark);
+    ants_.clear();
+    ants_.emplace_back(GridPosition{rowCount_ / 2, columnCount_ / 2});
+    turnCount_ = 0;
 }

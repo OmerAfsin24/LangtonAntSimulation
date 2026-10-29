@@ -1,125 +1,88 @@
 #include "Ant.h"
 
+#include <stdexcept>
 
-
-
-Ant::Ant(string name, int x, int y)
+// A new ant starts facing up at the position chosen by the simulation.
+Ant::Ant(GridPosition position)
+    : position_(position),
+      direction_(Direction::Up)
 {
-    this->name = name;
-    this->x = x;
-    this->y = y;
-    this->direction = Direction::Up; // Initialize the ant's direction
 }
 
-void Ant::setCoordinates(int newX, int newY)
+GridPosition Ant::position() const
 {
-    x = newX;
-    y = newY;
+    return position_;
 }
 
-void Ant::setDirection(Direction newDirection)
+Direction Ant::direction() const
 {
-    direction = newDirection;
+    return direction_;
 }
-
-Direction Ant::getDirection()
-{
-    return direction;
-}
-string Ant::getDirectionString()
-{
-    switch (direction)
-    {
-        case Direction::Up:
-            return "Up";
-        case Direction::Down:
-            return "Down";
-        case Direction::Left:
-            return "Left";
-        case Direction::Right:
-            return "Right";
-        default:
-            return "Unknown";
-    }
-}
-int Ant::getcordinate_x()
-{
-    return x;
-}
-int Ant::getcordinate_y()
-{
-    return y;
-}
-
-
 
 void Ant::turnRight()
 {
-    int value = static_cast<int>(direction);
-    setDirection(static_cast<Direction>((value + 1) % 4)); // Turn right by incrementing the direction value
+    // Keep the turn mapping explicit so it does not depend on enum values.
+    switch (direction_)
+    {
+        case Direction::Up:
+            direction_ = Direction::Right;
+            break;
+        case Direction::Right:
+            direction_ = Direction::Down;
+            break;
+        case Direction::Down:
+            direction_ = Direction::Left;
+            break;
+        case Direction::Left:
+            direction_ = Direction::Up;
+            break;
+    }
 }
 
 void Ant::turnLeft()
 {
-    int value = static_cast<int>(direction);
-    setDirection(static_cast<Direction>((value + 3) % 4)); // Turn left by decrementing the direction value
+    // Turning left is the reverse of the clockwise direction mapping.
+    switch (direction_)
+    {
+        case Direction::Up:
+            direction_ = Direction::Left;
+            break;
+        case Direction::Right:
+            direction_ = Direction::Up;
+            break;
+        case Direction::Down:
+            direction_ = Direction::Right;
+            break;
+        case Direction::Left:
+            direction_ = Direction::Down;
+            break;
+    }
 }
 
-
-void Ant::movement_0()
+void Ant::moveForward(std::size_t rowCount, std::size_t columnCount)
 {
-    turnRight(); // Turn right
-    // İNDEX 1 OLACAK
-    switch (getDirection()){
-        
-        case Direction::Up:
-            setCoordinates(getcordinate_x()-1, getcordinate_y()); // Move up
-            return;
-        case Direction::Down:
-            setCoordinates(getcordinate_x()+1, getcordinate_y()); // Move down
-            return;
-        case Direction::Left    :
-            setCoordinates(getcordinate_x(), getcordinate_y()-1); // Move left
-            return;
-        case Direction::Right:
-            setCoordinates(getcordinate_x(), getcordinate_y()+1); // Move right
-            return;
+    if (rowCount == 0 || columnCount == 0)
+    {
+        throw std::invalid_argument("Grid dimensions must be positive.");
     }
-    
-    
-}
 
-
-void Ant::movement_1(){
-    turnLeft(); // Turn left
-    // İNDEX  OLACAK
-    switch (getDirection()){
-        
+    // Each edge case wraps to the opposite edge rather than producing an invalid coordinate.
+    switch (direction_)
+    {
         case Direction::Up:
-            setCoordinates(getcordinate_x()-1, getcordinate_y()); // Move up
-            return;
-        case Direction::Down:
-            setCoordinates(getcordinate_x()+1, getcordinate_y()); // Move down
-            return;
-        case Direction::Left    :
-            setCoordinates(getcordinate_x(), getcordinate_y()-1); // Move left
-            return;
+            position_.row = position_.row == 0 ? rowCount - 1 : position_.row - 1;
+            break;
         case Direction::Right:
-            setCoordinates(getcordinate_x(), getcordinate_y()+1); // Move right
-            return;
+            position_.column =
+                position_.column + 1 == columnCount ? 0 : position_.column + 1;
+            break;
+        case Direction::Down:
+            position_.row =
+                position_.row + 1 == rowCount ? 0 : position_.row + 1;
+            break;
+        case Direction::Left:
+            position_.column =
+                position_.column == 0 ? columnCount - 1 : position_.column - 1;
+            break;
     }
-    
-    
 }
-
-void Ant::speak()
-{   cout << "Hello, I am " << name << "." << endl;
-    cout << "My current position is (" << x << ", " << y << ")." << endl; //bakalım erişebilecek mi private değişkenlere
-    cout << "I am facing " << getDirectionString() << "." << endl;
-
-}
-
-
-
-
-
