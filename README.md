@@ -21,8 +21,10 @@ Langton's Ant Simulation is a C++17 simulation with an SFML graphical interface.
 `out/`, `build/`, and `build-core/` are generated build directories and are not part of the source tree.
 
 ## Screenshots
+<img src="images/Sim_pic1.png" alt="Simulation Picture1" width="600">
+<img src="images/Sim_pic2.png" alt="Simulation Picture2" width="600">
+<img src="images/Sim_pic3.png" alt="Simulation Picture3" width="600">
 
-Screenshots will be added here.
 
 ## Supported operating systems
 
