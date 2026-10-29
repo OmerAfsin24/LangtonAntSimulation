@@ -14,23 +14,57 @@ Langton's Ant Simulation is a C++17 simulation with an SFML graphical interface.
 ├── tests/SimulationTests.cpp       Simulation core tests
 ├── LICENSE                         MIT license for the project code
 ├── CMakeLists.txt                  Build configuration
-└── CMakePresets.json               Default Ninja build preset
+├── CMakePresets.json               Default Ninja build preset
+└── .github/workflows/release.yml   Package and publish tagged releases
 ```
 
 `out/`, `build/`, and `build-core/` are generated build directories and are not part of the source tree.
 
-## Run from source
+## Screenshots
+<img src="images/Sim_pic1.png" alt="Simulation Picture1" width="600">
+<img src="images/Sim_pic2.png" alt="Simulation Picture2" width="600">
+<img src="images/Sim_pic3.png" alt="Simulation Picture3" width="600">
+
+
+## Supported operating systems
+
+The release workflow builds packages for:
+
+- **Windows 10 and 11, 64-bit:** portable ZIP containing the application, SFML runtime libraries, and bundled font.
+- **Ubuntu 24.04 LTS, x86_64:** Debian package (`.deb`) containing the application and SFML runtime libraries.
+
+Other Linux distributions and macOS are not currently covered by prebuilt packages. They may be built from source, but are not part of the release support matrix.
+
+## Install a release build
+
+When a release is published, download the package for your system from [GitHub Releases](https://github.com/OmerAfsin24/LangtonAntSimulation/releases).
+
+**Windows:** extract the ZIP, then launch `bin\LangtonsAntSimulation.exe` from the extracted folder.
+
+**Ubuntu 24.04:** install the downloaded package with:
+
+```sh
+sudo apt install ./langtons-ant-simulation_*_amd64.deb
+```
+
+The executable is installed as `LangtonsAntSimulation` and can be launched from a terminal with:
+
+```sh
+LangtonsAntSimulation
+```
+
+## Build from source
 
 The graphical application requires:
 
 - A C++17 compiler (GCC, Clang, or MSVC).
-- CMake 3.27 or newer and Ninja. The included configure preset uses CMake preset schema version 8.
+- CMake 3.21 or newer for the project; CMake 3.27 or newer and Ninja to use the included configure preset (version 8).
 - Git and an internet connection for the first configure; CMake downloads SFML 2.6.2.
-- The platform's normal graphics/window-system development dependencies. On Linux, install your distribution's C++ build tools, Ninja, Git, OpenGL development files, and X11 development libraries.
+- The platform's normal graphics/window-system development dependencies. On Linux, install your distribution's C++ build tools, Ninja, Git, OpenGL, udev, and X11 development libraries.
 
 Examples for installing the build tools:
 
-- **Ubuntu / Debian:** `sudo apt install build-essential cmake ninja-build git libgl1-mesa-dev libx11-dev libxrandr-dev libxcursor-dev libxi-dev`
+- **Ubuntu / Debian:** `sudo apt install build-essential cmake ninja-build git libgl1-mesa-dev libudev-dev libx11-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev`
 - **macOS:** install Xcode Command Line Tools with `xcode-select --install`, then install CMake, Ninja, and Git (for example, with Homebrew).
 - **Windows:** install Visual Studio 2022 or Build Tools with the **Desktop development with C++** workload, plus CMake 3.27+ and Ninja. Run the commands below from a Visual Studio Developer PowerShell so the MSVC compiler is available.
 
@@ -92,14 +126,17 @@ The ant is drawn from SFML shapes rather than a downloaded image. This keeps it 
 
 The project code is licensed under the MIT License; see [LICENSE](./LICENSE). The bundled DejaVu Sans font is separately licensed; see [assets/fonts/LICENSE-DejaVu.txt](./assets/fonts/LICENSE-DejaVu.txt). SFML is fetched as a third-party dependency during the graphical build and is not covered by this project's MIT license. Review SFML's license and any applicable platform dependency licenses when redistributing a built application.
 
-To install the graphical application and its font under the configured install prefix:
+Release packages are built and tested by GitHub Actions when a version tag is pushed. Update the version in the `project(... VERSION ...)` declaration in `CMakeLists.txt`, then push the matching tag (for example, `v0.1.0` for version `0.1.0`):
 
 ```sh
-cmake --install out/build/LangtonsAntSimulationPreset
+git tag v0.1.0
+git push origin v0.1.0
 ```
 
-This stages the executable and font; it does not yet bundle SFML's shared libraries or all platform system dependencies. A distributable GitHub Release will need to provide those runtime dependencies for each target platform.
+The workflow verifies the tag matches the project version, runs the test suite, creates the Windows ZIP and Ubuntu `.deb`, and publishes them as GitHub Release assets.
 
-## Running a prebuilt application
+## Known limitations
 
-Prebuilt GitHub Release downloads are not available yet. Once published, ordinary users will be able to download a build for their operating system without installing a C++ compiler or CMake. Release builds must include or otherwise provide the runtime libraries required by SFML; the source-build dependency setup alone does not package those runtime files.
+- Release packages are currently limited to 64-bit Windows 10/11 and Ubuntu 24.04 LTS on x86_64. There is no macOS package.
+- The application requires a graphical desktop session. The simulation core tests can run without a display.
+- The renderer is limited to 60 FPS and advances at most one simulation step per frame, so the effective simulation speed is capped at 60 steps per second.
