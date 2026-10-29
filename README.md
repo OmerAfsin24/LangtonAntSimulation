@@ -10,7 +10,6 @@ Langton's Ant Simulation is a C++17 simulation with an SFML graphical interface.
 ├── Simulation.cpp / Simulation.h   Grid and simulation logic
 ├── Visualization.cpp / Visualization.h  SFML graphical interface
 ├── main.cpp                        Application entry point
-├── rules.txt                       Simulation rule description
 ├── assets/fonts/                   Bundled DejaVu Sans font and license
 ├── tests/SimulationTests.cpp       Simulation core tests
 ├── LICENSE                         MIT license for the project code
@@ -38,8 +37,8 @@ Examples for installing the build tools:
 Then clone the repository and enter its directory:
 
 ```sh
-git clone <repository-url>
-cd LangtonAnt
+git clone https://github.com/OmerAfsin24/LangtonAntSimulation.git
+cd LangtonAntSimulation
 ```
 
 Configure and compile the graphical application:
