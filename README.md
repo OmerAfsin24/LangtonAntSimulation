@@ -13,11 +13,12 @@ Langton's Ant Simulation is a C++17 simulation with an SFML graphical interface.
 ├── rules.txt                       Simulation rule description
 ├── assets/fonts/                   Bundled DejaVu Sans font and license
 ├── tests/SimulationTests.cpp       Simulation core tests
+├── LICENSE                         MIT license for the project code
 ├── CMakeLists.txt                  Build configuration
 └── CMakePresets.json               Default Ninja build preset
 ```
 
-`out/` and `build/` are generated build directories and are not part of the source tree.
+`out/`, `build/`, and `build-core/` are generated build directories and are not part of the source tree.
 
 ## Run from source
 
@@ -87,6 +88,10 @@ All ants share the same grid and each simulation tick advances them in insertion
 The numeric speed field supports values from 1 to 60 steps per second. Typing a valid value applies it immediately; press **Enter** to finish editing. The render loop is limited to 60 FPS and advances at most one simulation step per frame, so a delayed frame will not trigger a burst of catch-up steps.
 
 The ant is drawn from SFML shapes rather than a downloaded image. This keeps it crisp at different grid sizes and avoids third-party ant artwork with licensing or transparency concerns. The interface font is DejaVu Sans, bundled under its Bitstream Vera license in `assets/fonts/`. CMake copies it beside the local executable; installed builds look for it under `share/langtons-ant-simulation/assets/fonts/`, relative to the executable. The application locates itself on Linux and Windows, so launching it from another working directory does not depend on the current directory.
+
+## License
+
+The project code is licensed under the MIT License; see [LICENSE](./LICENSE). The bundled DejaVu Sans font is separately licensed; see [assets/fonts/LICENSE-DejaVu.txt](./assets/fonts/LICENSE-DejaVu.txt). SFML is fetched as a third-party dependency during the graphical build and is not covered by this project's MIT license. Review SFML's license and any applicable platform dependency licenses when redistributing a built application.
 
 To install the graphical application and its font under the configured install prefix:
 

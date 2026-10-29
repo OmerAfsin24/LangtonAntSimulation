@@ -1,6 +1,7 @@
 # Build directories
 out/
 build/
+build-*/
 cmake-build-*/
 
 # Compiled binaries and libraries
@@ -17,6 +18,12 @@ CMakeFiles/
 cmake_install.cmake
 Makefile
 compile_commands.json
+CMakeUserPresets.json
+build.ninja
+.ninja_deps
+.ninja_log
+Testing/
+_deps/
 
 # IDE
 .vscode/
